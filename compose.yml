@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:latest
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_USER: lab567v-backend
+      MARIADB_PASSWORD: hellohacker
+      MARIADB_DATABASE: lab567v
+    networks:
+      - database
+    volumes:
+      - db:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    networks:
+      - database
+      - proxy
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    networks:
+      - proxy
+
+  dbadmin:
+    image: phpmyadmin:latest
+    depends_on:
+      - db
+    ports:
+      - 8888:80
+    environment:
+      PMA_HOST: db
+    networks:
+      - database
+
+  proxy:
+    build: ./proxy
+    ports:
+      - 8080:80
+    depends_on:
+      - backend
+      - frontend
+      - dbadmin
+    networks:
+      - proxy
+
+networks:
+  database: {}
+  proxy: {}
+
+volumes:
+  db: {}
